@@ -6,8 +6,8 @@ interface Account {
   type: 'LDAP' | 'Локальная';
   login: string;
   password: string | null;
-  loginError: string | null;
-  passwordError: string | null;
+  loginError?: string | null;
+  passwordError?: string | null;
   passwordVisible: boolean | null;
 }
 
@@ -16,22 +16,33 @@ export const useAccountStore = defineStore('accounts', {
     accounts: [] as Account[],
   }),
   actions: {
+    loadAccounts() {
+      const storedAccounts = localStorage.getItem('accounts');
+      if (storedAccounts) {
+        this.accounts = JSON.parse(storedAccounts);
+      }
+    },
+    saveAccounts() {
+      localStorage.setItem('accounts', JSON.stringify(this.accounts));
+    },
     addAccount() {
       this.accounts.push({
         label: null,
         type: 'Локальная',
         login: '',
         password: null,
-        loginError: null,
-        passwordError: null,
         passwordVisible: false
       });
+      this.saveAccounts();
     },
     removeAccount(index: number) {
       this.accounts.splice(index, 1);
+      this.saveAccounts();
     },
     updateAccount(index: number, account: Account) {
+      console.log('Updating account at index:', index, 'with data:', account);
       this.accounts[index] = account;
+      this.saveAccounts();
     },
   },
 });

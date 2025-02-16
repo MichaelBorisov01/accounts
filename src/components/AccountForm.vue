@@ -10,6 +10,18 @@
         </v-btn>
       </v-col>
     </v-row>
+
+    <v-row class="info-block">
+      <v-col cols="auto">
+        <v-icon color="black">
+          mdi-help-circle
+        </v-icon>
+      </v-col>
+      <v-col>
+        <span style="color: black">Для указания нескольких меток одной пары логин/пароль используйте разделитель ;</span>
+      </v-col>
+    </v-row>
+
     <v-row
       v-for="(account, index) in accounts"
       :key="index"
@@ -19,9 +31,8 @@
         <v-text-field
           v-model="formattedLabels[index]"
           label="Метка"
-          :counter="50"
           :error-messages="getErrorMessages(index, 'label')"
-          @blur="updateAccount(index, account)"
+          @blur="validateLabel(index)"
         />
       </v-col>
       <v-col>
@@ -76,7 +87,7 @@
 import {computed} from 'vue';
 import {useAccountStore} from '@/stores/accounts';
 
-let accountStore = useAccountStore();
+const accountStore = useAccountStore();
 const accountTypes = ['LDAP', 'Локальная'];
 
 const addAccount = () => {
@@ -94,6 +105,18 @@ const togglePasswordVisibility = (index: number) => {
   account.passwordVisible = !account.passwordVisible;
 };
 
+const validateLabel = (index: number) => {
+  const accountStore = useAccountStore();
+  const account = accountStore.accounts[index];
+  account.labelError = '';
+  if (formattedLabels.value[index].length > 50) {
+    account.labelError = 'Метка не должна превышать 50 символов';
+  }
+
+  if (!account.labelError) {
+    updateAccount(index, account);
+  }
+};
 
 const validateLogin = (index: number) => {
   const accountStore = useAccountStore();
@@ -103,6 +126,8 @@ const validateLogin = (index: number) => {
 
   if (!account.login) {
     account.loginError = 'Логин обязателен для заполнения';
+  } else if (account.login.length > 100) {
+    account.loginError = 'Логин не должен превышать 100 символов';
   }
 
   if (!account.loginError) {
@@ -118,7 +143,10 @@ const validatePassword = (index: number) => {
 
   if (account.type === 'Локальная' && !account.password) {
     account.passwordError = 'Пароль обязателен для заполнения';
+  } else if (account.password && account.password.length > 100) {
+    account.passwordError = 'Пароль не должен превышать 100 символов';
   }
+
   if (!account.passwordError) {
     updateAccount(index, account);
   }
@@ -155,6 +183,9 @@ const getErrorMessages = (index: number, field: string) => {
   if (field === 'password') {
     return account.passwordError ? [account.passwordError] : [];
   }
+  if (field === 'label') {
+    return account.labelError ? [account.labelError] : [];
+  }
   return [];
 };
 
@@ -173,5 +204,11 @@ const accounts = computed(() => accountStore.accounts);
 
 .login_field {
   flex-grow: 1;
+}
+
+.info-block {
+  background-color: lightblue;
+  margin-bottom: 10px;
+  border-radius: 10px;
 }
 </style>

@@ -8,6 +8,7 @@ interface Account {
   password: string | null;
   loginError?: string | null;
   passwordError?: string | null;
+  labelError?: string | null;
   passwordVisible: boolean | null;
 }
 
